@@ -1,37 +1,45 @@
 import throttle from 'lodash.throttle';
 
-const form = document.querySelector('.feedback-form');
-const message = document.querySelector('.feedback-form textarea');
-const email = document.querySelector('.feedback-form input');
-
-form.addEventListener('input', throttle(onFormData, 500));
-form.addEventListener('submit', onSubmitForm);
-
+const STORAGE_KEY = 'feedback-form-state';
 const formData = {};
 
-dataFromLocalStorage()
 
-function onFormData(e) {
-  formData[e.target.name] = e.target.value;
-  localStorage.setItem('feedback-form-state', JSON.stringify(formData));
-}
+const form = document.querySelector('.feedback-form');
 
-function onSubmitForm(e) {
-  e.preventDefault();
-  if (message.value === '' || email.value === '') {
-    return;
-  }
-  console.log(JSON.parse(localStorage.getItem('feedback-form-state')));
+form.addEventListener('submit', onFormSubmit);
+form.addEventListener('input', throttle(onformEl, 500));
 
-  e.currentTarget.reset();
-  localStorage.removeItem('feedback-form-state');
-}
+fillForm();
 
-function dataFromLocalStorage() {
-  const data = JSON.parse(localStorage.getItem('feedback-form-state'));
+function onFormSubmit(e) {
+    e.preventDefault();
+    formData.email = form.elements.email.value;
+    formData.message = form.elements.message.value;
 
-  if (data) {
-    email.value = data.email;
-    message.value = data.message;
-  }
+    console.log(formData);
+
+    form.reset();
+    localStorage.removeItem(STORAGE_KEY);
+};
+
+function onformEl(e) {
+    formData[e.target.name] = e.target.value;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+
+    // console.log(formData);
+};
+
+function fillForm() {
+    const savedForm = localStorage.getItem(STORAGE_KEY);
+    if (savedForm) {
+        const parceSavedForm = JSON.parse(savedForm);
+        // console.log(parceSavedForm);
+        for (const prop in parceSavedForm) {
+        if (parceSavedForm.hasOwnProperty(prop)) {
+            // console.log(parceSavedForm[prop]);
+            form.elements[prop].value = parceSavedForm[prop];
+            formData[prop] = parceSavedForm[prop];
+        }
+    }
+    }  
 };
